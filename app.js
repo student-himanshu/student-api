@@ -138,7 +138,31 @@ app.put("/students/:id", (req, res) => {
         student
     });
 });
+app.delete("/students/:id", (req, res) => {
 
+    const id = Number(req.params.id);
+
+    const index = students.findIndex((s) => s.id === id);
+
+    if (index === -1) {
+
+        return res.status(404).json({
+
+            message: "Student Not Found"
+
+        });
+
+    }
+
+    students.splice(index, 1);
+
+    res.status(200).json({
+
+        message: "Student Deleted Successfully"
+
+    });
+
+});
 app.get("/teachers", (req, res) => {
     res.send("All Teachers");
 });
