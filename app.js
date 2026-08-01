@@ -70,7 +70,24 @@ app.get("/students/:id", (req, res) => {
 // postman se post jayega naki browser se body=>row=>json select=>{name:"hin",age:22}
 
 app.post("/students", (req, res) => {
+    if (req.body.name.length < 3) {
 
+        return res.status(400).json({
+
+            message: "Name is required min 3 letter"
+
+        });
+
+    }
+    if (!req.body.age || req.body.age <= 0) {
+        if (req.body.age <= 0) return res.status(400).json({ message: "Age must be greater than 0" });
+        return res.status(400).json({
+
+            message: "Age is required"
+
+        });
+
+    }
     const newStudent = {
 
         id: students.length + 1,
