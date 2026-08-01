@@ -18,7 +18,23 @@ app.get("/students", (req, res) => {
 app.get("/teachers", (req, res) => {
     res.send("All Teachers");
 });
+app.get("/login",(req,res)=>{
+    res.send("login page");
 
+})
+app.get("/signup",(req,res)=>{
+    res.send("signup");
+})
+app.get("/profile",(req,res)=>{
+    res.send("profile");
+})
+app.get("/courses",(req,res)=>{
+    res.send("courses");
+})
+app.get("/results",(req,res)=>{
+    res.send("results");
+})
 app.listen(3000, () => {
     console.log("Server Started");
 });
+
