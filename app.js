@@ -102,6 +102,42 @@ app.post("/students", (req, res) => {
     res.status(201).json(newStudent);
 
 });
+app.put("/students/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const student = students.find((s) => s.id === id);
+    if (!student) {
+        return res.status(404).json({
+            message: "student not found"
+        });
+    }
+    if (!req.body.name) {
+        return res.status(400).json({
+            message: "name is required"
+        });
+    };
+    if (!req.body.age) {
+        return res.status(400).json({
+            message: "age is required"
+        });
+    };
+    if (req.body.age <= 0) {
+        return res.status(400).json({
+            message: "negative age not need"
+        });
+    };
+    if (req.body.name.length < 3) {
+        res.status(400).json({
+            message: "more 3 letter need"
+        });
+
+    };
+    student.name = req.body.name;
+    student.age = req.body.age;
+    res.status(200).json({
+        message: "student Updated Successfully",
+        student
+    });
+});
 
 app.get("/teachers", (req, res) => {
     res.send("All Teachers");
