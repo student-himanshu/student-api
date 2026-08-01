@@ -18,9 +18,16 @@ app.get("/about", (req, res) => {
 app.get("/content",(req,res)=>{
     res.send("content page");
 })
-app.get("/students", (req, res) => {
 
-  const students = [
+
+
+// app.get("/students", (req, res) => {
+
+// res.json(students);
+
+// });
+app.get("/students/:id", (req, res) => {
+    const students = [
 
     {
         id:1,
@@ -47,9 +54,20 @@ app.get("/students", (req, res) => {
 
 ];
 
-res.json(students);
+    const id = Number(req.params.id);
+
+    const student = students.find((s) => s.id === id);
+
+    res.json(student);
 
 });
+// app.get("/students/:id", (req, res) => {
+
+//     console.log(req.params.id);
+
+//     res.send("Student Found");
+
+// });
 app.get("/teachers", (req, res) => {
     res.send("All Teachers");
 });
