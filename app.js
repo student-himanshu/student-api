@@ -53,12 +53,23 @@ app.get("/students/:id", (req, res) => {
     }
 
 ];
-
+        // console.log(req.params);
     const id = Number(req.params.id);
 
     const student = students.find((s) => s.id === id);
 
-    res.json(student);
+    // res.json(student);
+    if(student){
+
+    res.status(200).json(student);
+
+}else{
+
+    res.status(404).json({
+        message:"Student Not Found"
+    });
+
+}
 
 });
 // app.get("/students/:id", (req, res) => {
