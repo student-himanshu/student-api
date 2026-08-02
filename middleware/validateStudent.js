@@ -1,33 +1,15 @@
-function validateStudent(req, res, next) {
+const validateStudent = (req, res, next) => {
 
     const { name, age } = req.body;
 
-    if (!name) {
+    if (!name || !age) {
         return res.status(400).json({
-            message: "Name is required"
+            message: "Name and Age are required"
         });
     }
 
-    if (!age) {
-        return res.status(400).json({
-            message: "Age is required"
-        });
-    }
+    next();
 
-    if (name.length < 3) {
-        return res.status(400).json({
-            message: "Name must contain at least 3 characters"
-        });
-    }
-
-    if (age <= 0) {
-        return res.status(400).json({
-            message: "Age must be greater than 0"
-        });
-    }
-
-    next();//Ye Express ko bolta hai "Validation complete ho gayi. Ab next function chalao."
-
-}
+};
 
 module.exports = validateStudent;

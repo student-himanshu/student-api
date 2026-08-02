@@ -1,4 +1,5 @@
 const Student = require("../models/studentModel");
+
 //          GET ALL
 const getStudents = async (req, res) => {
 
