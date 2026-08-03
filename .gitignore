@@ -1,3 +1,30 @@
+# Dependencies
 node_modules/
+
+# Environment files
 .env
-db.js
+.env.local
+.env.development
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Upload folder
+uploads/
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp/
+tmp/

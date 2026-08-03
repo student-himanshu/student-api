@@ -1,159 +1,124 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
+const { sendSuccess } = require("../utils/apiResponse");
+const sendEmail = require("../utils/sendEmail");
 
+const signup = asyncHandler(async (req, res) => {
 
-const signup = async (req, res) => {
+    const { name, email, password } = req.body;
 
-    try {
+    const existingUser = await User.findOne({ email });
 
-        const { name, email, password } = req.body;
-
-        if (!name || !email || !password) {
-
-            return res.status(400).json({
-                message: "All fields are required"
-            });
-
-        }
-
-        const existingUser = await User.findOne({
-
-            email: email
-
-        });
-
-        if (existingUser) {
-
-            return res.status(400).json({
-                message: "Email already registered"
-            });
-
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-
-            name,
-
-            email,
-
-            password: hashedPassword
-
-        });
-
-        res.status(201).json({
-
-            message: "User Registered Successfully",
-
-            user
-
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (existingUser) {
+        throw new ApiError(400, "Email already registered");
     }
 
-};
-const login = async (req, res) => {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    try {
+    const user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: "student"
+    });
 
-        const { email, password } = req.body;
+    sendSuccess(res, 201, "User Registered Successfully", {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    });
 
-        if (!email || !password) {
+});
 
-            return res.status(400).json({
+const login = asyncHandler(async (req, res) => {
 
-                message: "Email and Password required"
+    const { email, password } = req.body;
 
-            });
+    const user = await User.findOne({ email });
 
-        }
-
-        const user = await User.findOne({
-
-            email
-
-        });
-
-        if (!user) {
-
-            return res.status(404).json({
-
-                message: "User Not Found"
-
-            });
-
-        }
-
-        const isMatch = await bcrypt.compare(
-
-            password,
-
-            user.password
-
-        );
-
-        if (!isMatch) {
-
-            return res.status(401).json({
-
-                message: "Invalid Password"
-
-            });
-
-        }
-
-        const token = jwt.sign(
-
-            {
-
-                userId: user._id
-
-            },
-
-            process.env.JWT_SECRET,
-
-            {
-
-                expiresIn: "1d"
-
-            }
-
-        );
-
-        res.status(200).json({
-
-            message: "Login Successful",
-
-            token
-
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!user) {
+        throw new ApiError(404, "User Not Found");
     }
 
-}
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+        throw new ApiError(401, "Invalid Password");
+    }
+
+    const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+    );
+
+    sendSuccess(res, 200, "Login Successful", { token });
+
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User Not Found");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    //yeh sirf otp console print ke liye hai
+    console.log("================================");
+    console.log("Email :", email);
+    console.log("OTP   :", otp);
+    console.log("================================");
+
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 5 * 60 * 1000;
+    await user.save();
+
+    await sendEmail(email, "Password Reset OTP", `Your OTP is: ${otp}`);
+
+    sendSuccess(res, 200, "OTP sent to email");
+
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+
+    const { email, otp, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User Not Found");
+    }
+
+    if (user.otp !== otp) {
+        throw new ApiError(400, "Invalid OTP");
+    }
+
+    if (Date.now() > user.otpExpiry) {
+        throw new ApiError(400, "OTP Expired");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    user.otp = null;
+    user.otpExpiry = null;
+    await user.save();
+
+    sendSuccess(res, 200, "Password Reset Successfully");
+
+});
 
 module.exports = {
-
     signup,
-    login
-
+    login,
+    forgotPassword,
+    resetPassword
 };

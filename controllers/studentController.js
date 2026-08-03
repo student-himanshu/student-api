@@ -1,171 +1,101 @@
 const Student = require("../models/studentModel");
+const User = require("../models/userModel");
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
+const { sendSuccess } = require("../utils/apiResponse");
 
-//          GET ALL
-const getStudents = async (req, res) => {
+const getProfile = asyncHandler(async (req, res) => {
 
-    try {
+    sendSuccess(res, 200, "Profile fetched successfully", { user: req.user });
 
-        const students = await Student.find();
+});
 
-        res.status(200).json(students);
+const uploadProfilePhoto = asyncHandler(async (req, res) => {
 
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!req.file) {
+        throw new ApiError(400, "No photo uploaded");
     }
 
-};
+    const user = await User.findByIdAndUpdate(
+        req.user.userId,
+        { profilePhoto: req.file.filename },
+        { new: true }
+    ).select("-password");
 
-//          GET BY ID
-const getStudentById = async (req, res) => {
-
-    try {
-
-        const student = await Student.findById(req.params.id);
-
-        if (!student) {
-
-            return res.status(404).json({
-
-                message: "Student Not Found"
-
-            });
-
-        }
-
-        res.json(student);
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!user) {
+        throw new ApiError(404, "User not found");
     }
 
-};
+    sendSuccess(res, 200, "Profile photo uploaded successfully", {
+        profilePhoto: user.profilePhoto
+    });
 
-//               POST
-const addStudent = async (req, res) => {
+});
 
-    try {
+const getStudents = asyncHandler(async (req, res) => {
 
-        const student = await Student.create({
+    const students = await Student.find();
+    sendSuccess(res, 200, "Students fetched successfully", students);
 
-            name: req.body.name,
+});
 
-            age: req.body.age
+const getStudentById = asyncHandler(async (req, res) => {
 
-        });
+    const student = await Student.findById(req.params.id);
 
-        res.status(201).json(student);
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!student) {
+        throw new ApiError(404, "Student Not Found");
     }
 
-};
+    sendSuccess(res, 200, "Student fetched successfully", student);
 
-//              PUT
-const updateStudent = async (req, res) => {
+});
 
-    try {
+const addStudent = asyncHandler(async (req, res) => {
 
-        const student = await Student.findByIdAndUpdate(
+    const student = await Student.create({
+        name: req.body.name,
+        age: req.body.age
+    });
 
-            req.params.id,
+    sendSuccess(res, 201, "Student created successfully", student);
 
-            req.body,
+});
 
-            {
+const updateStudent = asyncHandler(async (req, res) => {
 
-                new: true,
+    const student = await Student.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true, runValidators: true }
+    );
 
-                runValidators: true
-
-            }
-
-        );
-
-        if (!student) {
-
-            return res.status(404).json({
-
-                message: "Student Not Found"
-
-            });
-
-        }
-
-        res.json(student);
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!student) {
+        throw new ApiError(404, "Student Not Found");
     }
 
-};
+    sendSuccess(res, 200, "Student updated successfully", student);
 
-//           DELETE
-const deleteStudent = async (req, res) => {
+});
 
-    try {
+const deleteStudent = asyncHandler(async (req, res) => {
 
-        const student = await Student.findByIdAndDelete(req.params.id);
+    const student = await Student.findByIdAndDelete(req.params.id);
 
-        if (!student) {
-
-            return res.status(404).json({
-
-                message: "Student Not Found"
-
-            });
-
-        }
-
-        res.json({
-
-            message: "Student Deleted Successfully"
-
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-
-            message: error.message
-
-        });
-
+    if (!student) {
+        throw new ApiError(404, "Student Not Found");
     }
 
-};
+    sendSuccess(res, 200, "Student Deleted Successfully");
 
+});
 
 module.exports = {
-
     getStudents,
     getStudentById,
     addStudent,
     updateStudent,
-    deleteStudent
-
+    deleteStudent,
+    getProfile,
+    uploadProfilePhoto
 };

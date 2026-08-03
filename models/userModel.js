@@ -16,12 +16,26 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+
+    role: {
+        type: String,
+        enum: ["student", "teacher", "admin"],
+        default: "student"
+    },
+
+    profilePhoto: {
+        type: String
+    },
+
+    otp: {
+        type: String
+    },
+
+    otpExpiry: {
+        type: Date
     }
 
-}, {
-    timestamps: true
 });
 
-const User = mongoose.model("User", userSchema);
-
-module.exports = User;
+module.exports = mongoose.model("User", userSchema);
